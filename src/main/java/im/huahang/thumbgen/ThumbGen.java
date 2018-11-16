@@ -1,30 +1,50 @@
 package im.huahang.thumbgen;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import java.io.File;
 
 public class ThumbGen {
     static public void main(final String[] args) {
-        String inputPath = "/Users/huahang/Desktop/JPEG";
-        String outputPath = "/Users/huahang/Desktop/thumb";
-        File inputDir = new File(inputPath);
-        File outputDir = new File(outputPath);
-        if (!inputDir.isDirectory()) {
-            System.err.println("Invalid input path: " + inputPath);
+        /* parse input */
+        if (ArrayUtils.isEmpty(args)) {
+            System.err.println("thumbgen [input directory]");
             System.exit(1);
             return;
         }
-        if (outputDir.exists() && !outputDir.isDirectory()) {
-            System.err.println("Invalid output path: " + outputPath);
+        File directory = new File(args[0]);
+        if (!directory.isDirectory()) {
+            System.err.println("" + args[0] + " is not a directory");
             System.exit(1);
             return;
         }
-        outputDir.mkdirs();
-        File[] files = inputDir.listFiles();
+        if (!directory.isDirectory()) {
+            System.err.println("Invalid input path: " + directory);
+            System.exit(1);
+            return;
+        }
+        File[] files = directory.listFiles();
         for (File file : files) {
-            String inputFileName = file.getAbsolutePath();
-            String outputFileName = outputPath + "/" + file.getName();
-            String command = "convert -resize 4000x4000 -quality 90 " + inputFileName + " " + outputFileName;
+            if (file.isDirectory()) {
+                continue;
+            }
+            String filename = file.getAbsolutePath();
+            String extension = getExtensionFromFilename(filename).toLowerCase();
+            if (!extension.equalsIgnoreCase("jpg") && !extension.equalsIgnoreCase("jpeg")) {
+                continue;
+            }
+            String command = CONVERT_COMMAND + " " + filename + " " + filename;
             System.out.println(command);
         }
     }
+
+    static private String getExtensionFromFilename(final String filename) {
+        String[] splits = filename.split("\\.");
+        if (splits.length < 2) {
+            return "";
+        }
+        return splits[splits.length - 1];
+    }
+
+    static private final String CONVERT_COMMAND = "convert -resize 4000x4000 -quality 90";
 }
